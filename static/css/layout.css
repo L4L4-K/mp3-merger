@@ -1,0 +1,106 @@
+.app-shell {
+  width: min(1040px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 40px 0;
+}
+
+.hero {
+  margin-bottom: 24px;
+}
+
+.eyebrow {
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+}
+
+h1 {
+  font-size: 3.5rem;
+  line-height: 1.05;
+  margin: 0 0 14px;
+}
+
+h2 {
+  margin: 0;
+}
+
+.lead {
+  color: var(--muted);
+  font-size: 1.06rem;
+  max-width: 760px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.batch-controls,
+.batch-tabs-panel,
+.drop-zone,
+.toolbar,
+.name-panel,
+.list-panel,
+.status-panel {
+  margin-top: 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.batch-controls {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: end;
+  padding: 16px;
+}
+
+.toolbar {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+}
+
+.summary {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: baseline;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.name-panel {
+  padding: 16px;
+}
+
+.status-panel {
+  padding: 16px;
+}
+
+.progress-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--panel-soft);
+  margin-bottom: 10px;
+}
+
+.progress-bar {
+  width: 0%;
+  height: 100%;
+  background: var(--accent-strong);
+  transition: width 0.15s ease;
+}
+
+#statusText {
+  color: var(--muted);
+  margin: 0;
+  white-space: pre-wrap;
+}

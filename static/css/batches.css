@@ -1,0 +1,80 @@
+.batch-tabs-panel {
+  padding: 10px;
+}
+
+.batch-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.batch-tab {
+  flex: 0 0 210px;
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-soft);
+  color: var(--text);
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.batch-tab.is-active {
+  border-color: var(--accent);
+  background: rgba(20, 184, 166, 0.16);
+}
+
+.batch-tab-title {
+  font-weight: 800;
+}
+
+.batch-tab-meta {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.86rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drop-zone {
+  padding: 34px;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.drop-zone.is-over {
+  border-color: var(--accent);
+  background: rgba(20, 184, 166, 0.12);
+}
+
+.drop-zone.is-busy {
+  cursor: wait;
+}
+
+.drop-zone-inner {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.drop-zone-inner p {
+  color: var(--muted);
+  margin: 0;
+}
+
+.drop-icon {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  background: var(--panel-soft);
+  color: var(--accent);
+  font-size: 1rem;
+  font-weight: 800;
+}

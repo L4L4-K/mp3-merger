@@ -1,71 +1,125 @@
 <!doctype html>
-<html lang="ja">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>MP3 Merger</title>
+    <link rel="icon" href="data:," />
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body>
     <main class="app-shell">
       <section class="hero">
-        <p class="eyebrow">Docker-ready local web app</p>
-        <h1>MP3 結合ツール</h1>
-        <p class="lead">MP3 をブラウザにドラッグ＆ドロップし、順番を並べ替えて 1 つの MP3 としてダウンロードできます。</p>
+        <p class="eyebrow">Local batch MP3 utility</p>
+        <h1>MP3 Batch Merger</h1>
+        <p class="lead">
+          Build multiple ordered MP3 batches and download the merged results in a single ZIP archive.
+        </p>
       </section>
 
-      <section id="dropZone" class="drop-zone" tabindex="0" aria-label="MP3 ファイルをここにドロップ">
-        <input id="fileInput" type="file" accept="audio/mpeg,.mp3" multiple hidden />
-        <div class="drop-zone-inner">
-          <div class="drop-icon" aria-hidden="true">♪</div>
-          <h2>ここに MP3 をドロップ</h2>
-          <p>または</p>
-          <button id="selectButton" type="button" class="secondary-button">ファイルを選択</button>
+      <section class="batch-controls" aria-label="Batch settings">
+        <div class="control-grid">
+          <label class="field">
+            <span>Output names</span>
+            <select id="namingMode">
+              <option value="custom">Set per batch</option>
+              <option value="sequence">Generate from first name</option>
+            </select>
+          </label>
+
+          <label id="sequenceControl" class="field" hidden>
+            <span>First name</span>
+            <input id="sequenceStart" type="text" value="Section1" autocomplete="off" />
+          </label>
+
+          <label class="field">
+            <span>ZIP name</span>
+            <input id="archiveNameInput" type="text" value="mp3-batches.zip" autocomplete="off" />
+          </label>
+        </div>
+
+        <div class="control-actions">
+          <button id="addBatchButton" type="button" class="secondary-button">Add Batch</button>
+          <button id="removeBatchButton" type="button" class="ghost-button">Remove Batch</button>
         </div>
       </section>
 
-      <section class="toolbar" aria-label="操作">
-        <div>
-          <strong id="fileCount">0 ファイル</strong>
+      <section class="batch-tabs-panel" aria-label="Batches">
+        <div id="batchTabs" class="batch-tabs" role="tablist"></div>
+      </section>
+
+      <section id="dropZone" class="drop-zone" tabindex="0" aria-label="Add MP3 files">
+        <input id="fileInput" type="file" accept="audio/mpeg,.mp3" multiple hidden />
+        <div class="drop-zone-inner">
+          <div class="drop-icon" aria-hidden="true">MP3</div>
+          <h2 id="dropZoneTitle">Add MP3s to Batch 1</h2>
+          <p id="dropZoneHint">New selections are sorted by filename before they are appended.</p>
+          <button id="selectButton" type="button" class="secondary-button">Select Files</button>
+        </div>
+      </section>
+
+      <section class="toolbar" aria-label="Actions">
+        <div class="summary">
+          <strong id="batchSummary">1 batch</strong>
+          <span id="readySummary" class="muted">0 ready</span>
+          <span id="fileCount" class="muted">0 files</span>
           <span id="totalSize" class="muted">0 B</span>
         </div>
         <div class="toolbar-actions">
-          <button id="clearButton" type="button" class="ghost-button" disabled>クリア</button>
-          <button id="mergeButton" type="button" class="primary-button" disabled>結合してダウンロード</button>
+          <button id="clearBatchButton" type="button" class="ghost-button" disabled>Clear Batch</button>
+          <button id="clearAllButton" type="button" class="ghost-button" disabled>Clear All</button>
+          <button id="mergeButton" type="button" class="primary-button" disabled>Merge Ready Batches</button>
         </div>
       </section>
 
-      <section class="list-panel" aria-label="選択した MP3 の順番">
+      <section class="name-panel" aria-label="Output filename">
+        <label id="customNameControl" class="field">
+          <span>Active batch name</span>
+          <input id="batchNameInput" type="text" value="Batch1.mp3" autocomplete="off" />
+        </label>
+        <div id="generatedNameControl" class="generated-name" hidden>
+          <span>Active batch name</span>
+          <strong id="generatedNamePreview">Section1.mp3</strong>
+        </div>
+      </section>
+
+      <section class="list-panel" aria-label="Selected MP3 order">
+        <div class="list-header">
+          <h2 id="activeBatchTitle">Batch 1</h2>
+          <span id="activeBatchMeta" class="muted">0 files</span>
+        </div>
         <ol id="fileList" class="file-list"></ol>
-        <p id="emptyMessage" class="empty-message">まだファイルが選択されていません。上から下の順に結合されます。</p>
+        <p id="emptyMessage" class="empty-message">This batch has no MP3 files yet.</p>
       </section>
 
       <section id="statusPanel" class="status-panel" aria-live="polite" hidden>
         <div class="progress-track" aria-hidden="true"><div id="progressBar" class="progress-bar"></div></div>
-        <p id="statusText">準備中です。</p>
-      </section>
-
-      <section class="notes">
-        <h2>使い方</h2>
-        <p>ファイル名の左側をドラッグすると順番を変更できます。↑ ↓ ボタンでも移動できます。</p>
+        <p id="statusText">Ready.</p>
       </section>
     </main>
 
+    <template id="batchTabTemplate">
+      <button class="batch-tab" type="button" role="tab">
+        <span class="batch-tab-title"></span>
+        <span class="batch-tab-meta"></span>
+      </button>
+    </template>
+
     <template id="fileItemTemplate">
       <li class="file-item" draggable="true">
-        <span class="drag-handle" title="ドラッグして並べ替え" aria-hidden="true">☰</span>
+        <span class="drag-handle" title="Drag to reorder" aria-hidden="true">Drag</span>
         <div class="file-main">
           <strong class="file-name"></strong>
           <span class="file-meta"></span>
         </div>
         <div class="file-actions">
-          <button type="button" class="move-up" aria-label="上へ移動">↑</button>
-          <button type="button" class="move-down" aria-label="下へ移動">↓</button>
-          <button type="button" class="remove" aria-label="削除">削除</button>
+          <button type="button" class="move-up" aria-label="Move up">Up</button>
+          <button type="button" class="move-down" aria-label="Move down">Down</button>
+          <button type="button" class="remove" aria-label="Remove">Remove</button>
         </div>
       </li>
     </template>
 
-    <script src="/static/app.js"></script>
+    <script type="module" src="/static/app.js"></script>
   </body>
 </html>

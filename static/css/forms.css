@@ -1,0 +1,84 @@
+.control-grid {
+  display: grid;
+  grid-template-columns: minmax(190px, 240px) minmax(190px, 260px) minmax(190px, 260px);
+  gap: 14px;
+  align-items: end;
+}
+
+.field {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+}
+
+.field span,
+.generated-name span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+input,
+select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-soft);
+  color: var(--text);
+  padding: 9px 11px;
+}
+
+.control-actions,
+.toolbar-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.primary-button,
+.secondary-button,
+.ghost-button,
+.file-actions button {
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 9px 14px;
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, opacity 0.12s ease;
+}
+
+.primary-button {
+  background: var(--accent);
+  color: #06211f;
+  font-weight: 800;
+}
+
+.secondary-button,
+.ghost-button,
+.file-actions button {
+  background: var(--panel-soft);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.primary-button:hover:not(:disabled),
+.secondary-button:hover:not(:disabled),
+.ghost-button:hover:not(:disabled),
+.file-actions button:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.generated-name {
+  display: grid;
+  gap: 7px;
+}
+
+.generated-name strong {
+  min-height: 42px;
+  display: flex;
+  align-items: center;
+  overflow-wrap: anywhere;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel-soft);
+  padding: 9px 11px;
+}
