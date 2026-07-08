@@ -1,0 +1,11 @@
+services:
+  mp3-merger:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      MAX_FILES: "100"
+      MAX_TOTAL_BYTES: "1073741824"
+      MP3_QUALITY: "2"
+      OUTPUT_SAMPLE_RATE: "44100"
+      OUTPUT_CHANNEL_LAYOUT: "stereo"

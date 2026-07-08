@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MP3 Merger</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero">
+        <p class="eyebrow">Docker-ready local web app</p>
+        <h1>MP3 結合ツール</h1>
+        <p class="lead">MP3 をブラウザにドラッグ＆ドロップし、順番を並べ替えて 1 つの MP3 としてダウンロードできます。</p>
+      </section>
+
+      <section id="dropZone" class="drop-zone" tabindex="0" aria-label="MP3 ファイルをここにドロップ">
+        <input id="fileInput" type="file" accept="audio/mpeg,.mp3" multiple hidden />
+        <div class="drop-zone-inner">
+          <div class="drop-icon" aria-hidden="true">♪</div>
+          <h2>ここに MP3 をドロップ</h2>
+          <p>または</p>
+          <button id="selectButton" type="button" class="secondary-button">ファイルを選択</button>
+        </div>
+      </section>
+
+      <section class="toolbar" aria-label="操作">
+        <div>
+          <strong id="fileCount">0 ファイル</strong>
+          <span id="totalSize" class="muted">0 B</span>
+        </div>
+        <div class="toolbar-actions">
+          <button id="clearButton" type="button" class="ghost-button" disabled>クリア</button>
+          <button id="mergeButton" type="button" class="primary-button" disabled>結合してダウンロード</button>
+        </div>
+      </section>
+
+      <section class="list-panel" aria-label="選択した MP3 の順番">
+        <ol id="fileList" class="file-list"></ol>
+        <p id="emptyMessage" class="empty-message">まだファイルが選択されていません。上から下の順に結合されます。</p>
+      </section>
+
+      <section id="statusPanel" class="status-panel" aria-live="polite" hidden>
+        <div class="progress-track" aria-hidden="true"><div id="progressBar" class="progress-bar"></div></div>
+        <p id="statusText">準備中です。</p>
+      </section>
+
+      <section class="notes">
+        <h2>使い方</h2>
+        <p>ファイル名の左側をドラッグすると順番を変更できます。↑ ↓ ボタンでも移動できます。</p>
+      </section>
+    </main>
+
+    <template id="fileItemTemplate">
+      <li class="file-item" draggable="true">
+        <span class="drag-handle" title="ドラッグして並べ替え" aria-hidden="true">☰</span>
+        <div class="file-main">
+          <strong class="file-name"></strong>
+          <span class="file-meta"></span>
+        </div>
+        <div class="file-actions">
+          <button type="button" class="move-up" aria-label="上へ移動">↑</button>
+          <button type="button" class="move-down" aria-label="下へ移動">↓</button>
+          <button type="button" class="remove" aria-label="削除">削除</button>
+        </div>
+      </li>
+    </template>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>
