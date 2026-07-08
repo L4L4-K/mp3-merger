@@ -16,7 +16,7 @@ import {
   setBusy,
   state,
 } from "./js/state.js";
-import { downloadBlob, normalizeFileName } from "./js/utils.js";
+import { downloadBlob, normalizeFileName, titleFromFileName } from "./js/utils.js";
 import { createZipArchive } from "./js/zip.js";
 
 const actions = {
@@ -71,10 +71,14 @@ function applyDefaultNames() {
 
 function getReadyEntries() {
   const config = getNamingConfig();
-  return getRunnableEntries().map(entry => ({
-    ...entry,
-    filename: getOutputNameForBatch(entry.batch, entry.index, config),
-  }));
+  return getRunnableEntries().map(entry => {
+    const filename = getOutputNameForBatch(entry.batch, entry.index, config);
+    return {
+      ...entry,
+      filename,
+      title: titleFromFileName(filename),
+    };
+  });
 }
 
 function addSelectedFiles(fileListLike) {

@@ -20,6 +20,7 @@ export function mergeBatch(entry, onProgress) {
   return new Promise((resolve, reject) => {
     const formData = new FormData();
     entry.batch.items.forEach(item => formData.append("files", item.file, item.file.name));
+    formData.append("title", entry.title || entry.filename.replace(/\.mp3$/i, ""));
 
     const xhr = new XMLHttpRequest();
     xhr.open("POST", "/api/merge");

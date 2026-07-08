@@ -19,6 +19,7 @@ It is designed for the repetitive audio cleanup work that is awkward to do by ha
 - Each new selection is sorted by filename before it is appended to the active batch.
 - Reorder files manually with drag and drop or move buttons.
 - Choose custom output names per batch.
+- Write the same batch name into the MP3 ID3 title metadata.
 - Generate sequential names from a starting value, such as `Section1.mp3`, `Section2.mp3`, and `Section3.mp3`.
 - Set the ZIP archive filename before merging.
 - See batch-by-batch progress while merging.

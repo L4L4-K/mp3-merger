@@ -10,7 +10,7 @@ import zipfile
 from pathlib import Path
 from typing import Annotated, Any
 
-from fastapi import BackgroundTasks, FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import BackgroundTasks, FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.datastructures import UploadFile as StarletteUploadFile
@@ -69,6 +69,11 @@ def sanitize_download_name(name: str, fallback: str, extension: str) -> str:
     return value
 
 
+def title_from_download_name(name: str) -> str:
+    title = re.sub(r"\.mp3$", "", name or "", flags=re.IGNORECASE).strip()
+    return title or "Merged MP3"
+
+
 async def save_uploads(
     files: list[UploadFile],
     work_dir: Path,
@@ -104,7 +109,7 @@ async def save_uploads(
     return saved_paths
 
 
-def build_ffmpeg_command(input_paths: list[Path], output_path: Path) -> list[str]:
+def build_ffmpeg_command(input_paths: list[Path], output_path: Path, title: str | None = None) -> list[str]:
     command = ["ffmpeg", "-hide_banner", "-nostdin", "-y"]
     for path in input_paths:
         command.extend(["-i", str(path)])
@@ -139,15 +144,19 @@ def build_ffmpeg_command(input_paths: list[Path], output_path: Path) -> list[str
             MP3_QUALITY,
             "-id3v2_version",
             "3",
-            str(output_path),
         ]
     )
+    metadata_title = (title or "").strip()
+    if metadata_title:
+        command.extend(["-metadata", f"title={metadata_title}"])
+
+    command.append(str(output_path))
     return command
 
 
-def merge_mp3(input_paths: list[Path], output_path: Path) -> None:
+def merge_mp3(input_paths: list[Path], output_path: Path, title: str | None = None) -> None:
     ensure_ffmpeg()
-    command = build_ffmpeg_command(input_paths, output_path)
+    command = build_ffmpeg_command(input_paths, output_path, title)
 
     try:
         result = subprocess.run(
@@ -190,11 +199,12 @@ def parse_batch_manifest(raw_manifest: Any) -> list[dict[str, str]]:
             raise HTTPException(status_code=400, detail=f"Batch {index} is invalid.")
         field = entry.get("field")
         filename = entry.get("filename")
+        title = entry.get("title")
         if not isinstance(field, str) or not field:
             raise HTTPException(status_code=400, detail=f"Batch {index} is missing a field name.")
         if not isinstance(filename, str) or not filename.strip():
             raise HTTPException(status_code=400, detail=f"Batch {index} is missing an output filename.")
-        parsed.append({"field": field, "filename": filename})
+        parsed.append({"field": field, "filename": filename, "title": title if isinstance(title, str) else ""})
 
     return parsed
 
@@ -208,6 +218,7 @@ def index() -> FileResponse:
 async def merge_endpoint(
     background_tasks: BackgroundTasks,
     files: Annotated[list[UploadFile], File(description="Order-sensitive MP3 files")],
+    title: Annotated[str | None, Form()] = None,
 ) -> FileResponse:
     if len(files) < 2:
         raise HTTPException(status_code=400, detail="Select at least two MP3 files.")
@@ -220,7 +231,7 @@ async def merge_endpoint(
     try:
         input_paths = await save_uploads(files, work_dir, "input", {"value": 0})
         output_path = work_dir / "merged.mp3"
-        merge_mp3(input_paths, output_path)
+        merge_mp3(input_paths, output_path, title)
     except Exception:
         cleanup_dir(tmp_dir)
         raise
@@ -259,6 +270,7 @@ async def merge_batches_endpoint(background_tasks: BackgroundTasks, request: Req
                 raise HTTPException(status_code=413, detail=f"Batch {index} exceeds the file limit of {MAX_FILES}.")
 
             output_name = sanitize_download_name(batch["filename"], f"Batch{index}.mp3", ".mp3")
+            metadata_title = batch["title"].strip() or title_from_download_name(output_name)
             output_key = output_name.lower()
             if output_key in output_names:
                 raise HTTPException(status_code=400, detail=f"Duplicate output filename: {output_name}")
@@ -268,7 +280,7 @@ async def merge_batches_endpoint(background_tasks: BackgroundTasks, request: Req
             batch_dir.mkdir()
             input_paths = await save_uploads(upload_files, batch_dir, "input", total_bytes)
             output_path = output_dir / output_name
-            merge_mp3(input_paths, output_path)
+            merge_mp3(input_paths, output_path, metadata_title)
             merged_outputs.append(output_path)
 
         zip_path = work_dir / archive_name

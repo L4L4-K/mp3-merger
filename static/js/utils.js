@@ -51,6 +51,12 @@ export function normalizeFileName(name, fallback, extension) {
   return value.toLowerCase().endsWith(extension.toLowerCase()) ? value : `${value}${extension}`;
 }
 
+export function titleFromFileName(fileName) {
+  return String(fileName || "")
+    .replace(/\.mp3$/i, "")
+    .trim() || "Merged MP3";
+}
+
 export function downloadBlob(blob, filename) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
