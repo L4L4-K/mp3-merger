@@ -44,3 +44,13 @@ jobs:
       - name: Compile application
         run: python -m compileall app
 
+  docker-build:
+    name: Docker build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Build image
+        run: docker build --pull -t mp3-merger:test .
