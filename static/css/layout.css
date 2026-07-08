@@ -1,25 +1,17 @@
 .app-shell {
   width: min(1040px, calc(100% - 32px));
   margin: 0 auto;
-  padding: 40px 0;
+  padding: 32px 0;
 }
 
 .hero {
-  margin-bottom: 24px;
-}
-
-.eyebrow {
-  color: var(--accent);
-  font-weight: 700;
-  letter-spacing: 0;
-  text-transform: uppercase;
-  margin: 0 0 8px;
+  margin-bottom: 18px;
 }
 
 h1 {
-  font-size: 3.5rem;
-  line-height: 1.05;
-  margin: 0 0 14px;
+  font-size: 2.4rem;
+  line-height: 1.12;
+  margin: 0 0 10px;
 }
 
 h2 {
@@ -28,9 +20,9 @@ h2 {
 
 .lead {
   color: var(--muted);
-  font-size: 1.06rem;
+  font-size: 0.98rem;
   max-width: 760px;
-  line-height: 1.7;
+  line-height: 1.55;
   margin: 0;
 }
 
@@ -54,6 +46,10 @@ h2 {
   gap: 16px;
   align-items: end;
   padding: 16px;
+}
+
+.batch-controls .control-actions {
+  align-items: end;
 }
 
 .toolbar {

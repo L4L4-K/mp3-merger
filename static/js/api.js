@@ -16,22 +16,13 @@ async function extractErrorMessage(xhr) {
   return fallback;
 }
 
-export function mergeBatches(entries, archiveName, onProgress) {
+export function mergeBatch(entry, onProgress) {
   return new Promise((resolve, reject) => {
     const formData = new FormData();
-    const manifest = [];
-
-    entries.forEach((entry, requestIndex) => {
-      const field = `batch_${requestIndex}_files`;
-      manifest.push({ field, filename: entry.filename });
-      entry.batch.items.forEach(item => formData.append(field, item.file, item.file.name));
-    });
-
-    formData.append("manifest", JSON.stringify(manifest));
-    formData.append("archive_name", archiveName);
+    entry.batch.items.forEach(item => formData.append("files", item.file, item.file.name));
 
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", "/api/merge-batches");
+    xhr.open("POST", "/api/merge");
     xhr.responseType = "blob";
 
     xhr.upload.addEventListener("progress", event => {

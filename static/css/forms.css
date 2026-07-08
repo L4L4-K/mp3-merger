@@ -35,6 +35,14 @@ select {
   justify-content: flex-end;
 }
 
+.batch-controls .control-actions {
+  flex-wrap: nowrap;
+}
+
+.batch-controls .control-actions button {
+  white-space: nowrap;
+}
+
 .primary-button,
 .secondary-button,
 .ghost-button,
