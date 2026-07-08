@@ -1,62 +1,115 @@
 # MP3 Merger
 
-ブラウザにドラッグ＆ドロップした MP3 ファイルを、指定した順番で 1 つの MP3 に結合する Docker 対応 Web アプリです。
+A local web app for building multiple ordered MP3 batches and merging each batch into a single MP3. Batch results are returned together in one ZIP archive.
 
-## 機能
+## Features
 
-- 複数 MP3 のドラッグ＆ドロップ
-- 一覧上でのドラッグ並べ替え
-- ↑ ↓ ボタンによる順番変更
-- 不要ファイルの削除
-- FFmpeg による再エンコード結合
-- 結合後の `merged.mp3` 自動ダウンロード
+- Drag and drop or select multiple MP3 files.
+- Create and manage multiple batches.
+- Run all ready batches in one request.
+- Download a single ZIP that contains one merged MP3 per batch.
+- Choose custom output names per batch.
+- Generate sequential output names from a starting name, such as `Section1.mp3`, `Section2.mp3`, and `Section3.mp3`.
+- Sort each newly added selection by filename before appending it to the active batch.
+- Reorder files with drag and drop or the move buttons.
+- Merge audio through FFmpeg with normalized sample rate and channel layout.
 
-## 起動方法
+## Run With Docker
 
 ```bash
 docker compose up --build
 ```
 
-ブラウザで次を開きます。
+Open:
 
 ```text
 http://localhost:8000
 ```
 
-Docker Compose を使わない場合は次で起動できます。
+You can also run the image directly:
 
 ```bash
 docker build -t mp3-merger .
 docker run --rm -p 8000:8000 mp3-merger
 ```
 
-## 設定
+## Run Without Docker
 
-`docker-compose.yml` の environment で変更できます。
+Install prerequisites:
 
-| 変数 | 既定値 | 説明 |
+- Python 3.12 or newer
+- FFmpeg on `PATH`
+
+Create a virtual environment and install the Python dependencies:
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+Start the server:
+
+```bash
+uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+Open:
+
+```text
+http://127.0.0.1:8000
+```
+
+If you use `uv`, the same app can be started without manually creating a virtual environment:
+
+```bash
+uv run --python 3.12 --with-requirements requirements.txt uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+## Configuration
+
+The Docker Compose file sets these environment variables. They can also be set in any non-Docker environment before starting `uvicorn`.
+
+| Variable | Default | Description |
 |---|---:|---|
-| `MAX_FILES` | `100` | 一度に結合できる最大ファイル数 |
-| `MAX_TOTAL_BYTES` | `1073741824` | アップロード合計サイズ上限。既定は 1 GiB |
-| `MP3_QUALITY` | `2` | FFmpeg libmp3lame の VBR 品質。小さいほど高品質 |
-| `OUTPUT_SAMPLE_RATE` | `44100` | 出力サンプルレート |
-| `OUTPUT_CHANNEL_LAYOUT` | `stereo` | 出力チャンネル。例: `stereo`, `mono` |
+| `MAX_FILES` | `100` | Maximum files per batch |
+| `MAX_TOTAL_BYTES` | `1073741824` | Maximum total upload size per request. Default is 1 GiB |
+| `MP3_QUALITY` | `2` | FFmpeg `libmp3lame` VBR quality. Lower values are higher quality |
+| `OUTPUT_SAMPLE_RATE` | `44100` | Output sample rate |
+| `OUTPUT_CHANNEL_LAYOUT` | `stereo` | Output channel layout, such as `stereo` or `mono` |
 
-## 実装メモ
-
-MP3 ファイルを単純にバイト列として連結すると壊れたファイルになる可能性があります。このアプリでは FFmpeg で各入力を同じサンプルレート、同じチャンネルに正規化し、concat filter で結合してから MP3 に再エンコードします。
-
-## ディレクトリ構成
+## Project Structure
 
 ```text
 .
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-├── app
-│   └── main.py
-└── static
-    ├── index.html
-    ├── styles.css
-    └── app.js
+|-- app
+|   `-- main.py
+|-- static
+|   |-- app.js
+|   |-- css
+|   |   |-- base.css
+|   |   |-- batches.css
+|   |   |-- files.css
+|   |   |-- forms.css
+|   |   |-- layout.css
+|   |   |-- responsive.css
+|   |   `-- tokens.css
+|   |-- index.html
+|   |-- js
+|   |   |-- api.js
+|   |   |-- dom.js
+|   |   |-- naming.js
+|   |   |-- render.js
+|   |   |-- state.js
+|   |   `-- utils.js
+|   `-- styles.css
+|-- docker-compose.yml
+|-- Dockerfile
+|-- README.md
+`-- requirements.txt
 ```
+
+## Implementation Notes
+
+MP3 files cannot be safely merged by concatenating bytes. The backend uses FFmpeg to normalize each input to the configured sample rate and channel layout, then merges the audio with the concat filter and re-encodes the output as MP3.
