@@ -75,7 +75,7 @@ The Docker Compose file sets these environment variables. They can also be set i
 |---|---:|---|
 | `MAX_FILES` | `100` | Maximum files per batch |
 | `MAX_TOTAL_BYTES` | `1073741824` | Maximum total upload size per request. Default is 1 GiB |
-| `MP3_QUALITY` | `2` | FFmpeg `libmp3lame` VBR quality. Lower values are higher quality |
+| `MP3_QUALITY` | `0` | FFmpeg `libmp3lame` VBR quality. `0` is the highest quality |
 | `OUTPUT_SAMPLE_RATE` | `44100` | Output sample rate |
 | `OUTPUT_CHANNEL_LAYOUT` | `stereo` | Output channel layout, such as `stereo` or `mono` |
 

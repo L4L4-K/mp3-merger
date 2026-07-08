@@ -20,7 +20,7 @@ STATIC_DIR = BASE_DIR / "static"
 
 MAX_FILES = int(os.getenv("MAX_FILES", "100"))
 MAX_TOTAL_BYTES = int(os.getenv("MAX_TOTAL_BYTES", str(1024 * 1024 * 1024)))
-MP3_QUALITY = os.getenv("MP3_QUALITY", "2")
+MP3_QUALITY = os.getenv("MP3_QUALITY", "0")
 OUTPUT_SAMPLE_RATE = os.getenv("OUTPUT_SAMPLE_RATE", "44100")
 OUTPUT_CHANNEL_LAYOUT = os.getenv("OUTPUT_CHANNEL_LAYOUT", "stereo")
 CHUNK_SIZE = 1024 * 1024
