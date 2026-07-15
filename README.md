@@ -20,6 +20,7 @@ It is designed for the repetitive audio cleanup work that is awkward to do by ha
 - Reorder files manually with drag and drop or move buttons.
 - Choose custom output names per batch.
 - Write the same batch name into the MP3 ID3 title metadata.
+- Do not copy artist, album, comment, or chapter metadata from source files.
 - Generate sequential names from a starting value, such as `Section1.mp3`, `Section2.mp3`, and `Section3.mp3`.
 - Set the ZIP archive filename before merging.
 - See batch-by-batch progress while merging.
@@ -71,7 +72,23 @@ Create a virtual environment and install the Python dependencies:
 
 ```bash
 python -m venv .venv
-.venv\Scripts\activate
+```
+
+Activate it with PowerShell on Windows:
+
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+Or activate it on macOS/Linux:
+
+```bash
+source .venv/bin/activate
+```
+
+Then install dependencies:
+
+```bash
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
@@ -106,12 +123,47 @@ The Docker Compose file sets these environment variables. They can also be set b
 | `OUTPUT_SAMPLE_RATE` | `44100` | Output sample rate |
 | `OUTPUT_CHANNEL_LAYOUT` | `stereo` | Output channel layout, such as `stereo` or `mono` |
 
+## Development Checks
+
+After installing the Python dependencies, run the backend unit, contract, and integration tests with:
+
+```bash
+python -B -m unittest discover -s tests/python -t . -v
+```
+
+The real audio integration test runs when both FFmpeg and ffprobe are on `PATH`; otherwise that one test is skipped.
+
+Frontend checks use Node.js 22 (the CI baseline) only for development validation. The app itself still runs directly in the browser, and the repository has no npm dependencies, so `npm install` is not required:
+
+```bash
+npm run check
+npm test
+```
+
+An optional synthetic benchmark measures whether a blocking merge stalls the event loop. It does not invoke FFmpeg or measure audio throughput:
+
+```bash
+python -B -m benchmarks.event_loop_responsiveness
+```
+
 ## Project Structure
 
 ```text
 .
+|-- benchmarks
+|   `-- event_loop_responsiveness.py
 |-- app
-|   `-- main.py
+|   |-- __init__.py
+|   |-- audio.py
+|   |-- config.py
+|   |-- main.py
+|   |-- manifests.py
+|   `-- uploads.py
+|-- docs
+|   |-- refactoring
+|   |   `-- plan.md
+|   `-- research
+|       `-- 2026-07-15-technical-improvements.md
 |-- static
 |   |-- app.js
 |   |-- css
@@ -126,15 +178,26 @@ The Docker Compose file sets these environment variables. They can also be set b
 |   |-- js
 |   |   |-- api.js
 |   |   |-- dom.js
+|   |   |-- jobs.js
 |   |   |-- naming.js
 |   |   |-- render.js
 |   |   |-- state.js
 |   |   |-- utils.js
 |   |   `-- zip.js
 |   `-- styles.css
+|-- tests
+|   |-- js
+|   |   `-- frontend.test.js
+|   `-- python
+|       |-- test_audio.py
+|       |-- test_configuration_and_manifest.py
+|       |-- test_ffmpeg_integration.py
+|       |-- test_routes.py
+|       `-- test_uploads.py
 |-- docker-compose.yml
 |-- Dockerfile
 |-- LICENSE
+|-- package.json
 |-- README.md
 `-- requirements.txt
 ```
@@ -142,6 +205,10 @@ The Docker Compose file sets these environment variables. They can also be set b
 ## Implementation Notes
 
 MP3 files cannot be safely merged by concatenating bytes. The backend uses FFmpeg to normalize each input to the configured sample rate and channel layout, then merges the audio with the concat filter and re-encodes the output as MP3.
+
+FFmpeg work runs outside the asynchronous server event loop so health and other lightweight requests remain responsive. A process-local gate keeps one merge active per event loop, matching the application's previous effective concurrency and avoiding an uncontrolled number of encoders. If a request task is cancelled while FFmpeg is running, cleanup waits for the worker to finish before removing its temporary files.
+
+Output metadata is explicit: source metadata and chapters are not copied, and only the requested batch title is written. In the browser, ZIP CRC32 values are calculated from Blob streams so packaging does not retain a second full `Uint8Array` copy of every merged MP3.
 
 ## License
 
