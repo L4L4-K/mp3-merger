@@ -42,7 +42,29 @@ jobs:
         run: python -m pip check
 
       - name: Compile application
-        run: python -m compileall app
+        run: python -m compileall app tests
+
+      - name: Run Python tests
+        run: python -B -m unittest discover -s tests/python -t . -v
+
+  frontend-test:
+    name: Frontend tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Check JavaScript syntax
+        run: npm run check
+
+      - name: Run frontend tests
+        run: npm test
 
   docker-build:
     name: Docker build
