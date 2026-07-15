@@ -1,5 +1,18 @@
 import { compareFilesAscending, createId, isMp3 } from "./utils.js";
 
+/**
+ * @typedef {File} AudioFile
+ * @typedef {{id: string, file: AudioFile}} BatchItem
+ * @typedef {{id: string, filename: string, items: BatchItem[]}} Batch
+ * @typedef {{
+ *   activeBatchId: string,
+ *   batches: Batch[],
+ *   dragSourceId: string | null,
+ *   isBusy: boolean,
+ * }} AppState
+ */
+
+/** @type {AppState} */
 export const state = {
   activeBatchId: "",
   batches: [createBatch(1)],
@@ -80,13 +93,23 @@ export function addFilesToActive(fileListLike) {
 
 export function moveItem(fromIndex, toIndex) {
   const batch = getActiveBatch();
-  if (toIndex < 0 || toIndex >= batch.items.length || fromIndex === toIndex) return;
+  if (
+    !Number.isInteger(fromIndex) ||
+    !Number.isInteger(toIndex) ||
+    fromIndex < 0 ||
+    fromIndex >= batch.items.length ||
+    toIndex < 0 ||
+    toIndex >= batch.items.length ||
+    fromIndex === toIndex
+  ) return;
   const [item] = batch.items.splice(fromIndex, 1);
   batch.items.splice(toIndex, 0, item);
 }
 
 export function removeItem(index) {
-  getActiveBatch().items.splice(index, 1);
+  const batch = getActiveBatch();
+  if (!Number.isInteger(index) || index < 0 || index >= batch.items.length) return;
+  batch.items.splice(index, 1);
 }
 
 export function addBatch() {

@@ -8,10 +8,28 @@ for (let index = 0; index < crcTable.length; index += 1) {
   crcTable[index] = value >>> 0;
 }
 
-function crc32(bytes) {
-  let crc = 0xffffffff;
+function updateCrc32(crc, bytes) {
   for (const byte of bytes) {
     crc = crcTable[(crc ^ byte) & 0xff] ^ (crc >>> 8);
+  }
+  return crc;
+}
+
+async function crc32(blob) {
+  let crc = 0xffffffff;
+  if (typeof blob.stream !== "function") {
+    return (updateCrc32(crc, new Uint8Array(await blob.arrayBuffer())) ^ 0xffffffff) >>> 0;
+  }
+
+  const reader = blob.stream().getReader();
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      crc = updateCrc32(crc, value);
+    }
+  } finally {
+    reader.releaseLock();
   }
   return (crc ^ 0xffffffff) >>> 0;
 }
@@ -94,19 +112,18 @@ export async function createZipArchive(files) {
   let offset = 0;
 
   for (const file of files) {
-    const bytes = new Uint8Array(await file.blob.arrayBuffer());
     const nameBytes = encoder.encode(file.name);
     const entry = {
       ...dosDateTime(),
-      crc: crc32(bytes),
-      size: bytes.byteLength,
+      crc: await crc32(file.blob),
+      size: file.blob.size,
     };
 
     const localHeader = localFileHeader(nameBytes, entry);
     const centralHeader = centralDirectoryHeader(nameBytes, entry, offset);
-    localParts.push(localHeader, bytes);
+    localParts.push(localHeader, file.blob);
     centralParts.push(centralHeader);
-    offset += localHeader.byteLength + bytes.byteLength;
+    offset += localHeader.byteLength + file.blob.size;
   }
 
   const centralDirectoryOffset = offset;

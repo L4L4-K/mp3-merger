@@ -1,6 +1,7 @@
 import { mergeBatch } from "./js/api.js";
 import { dom } from "./js/dom.js";
-import { findDuplicateOutputName, getOutputNameForBatch } from "./js/naming.js";
+import { buildMergeEntries } from "./js/jobs.js";
+import { findDuplicateOutputName } from "./js/naming.js";
 import { render, showStatus, updateProgress, clearStatus } from "./js/render.js";
 import {
   addBatch,
@@ -16,7 +17,7 @@ import {
   setBusy,
   state,
 } from "./js/state.js";
-import { downloadBlob, normalizeFileName, titleFromFileName } from "./js/utils.js";
+import { downloadBlob, normalizeFileName } from "./js/utils.js";
 import { createZipArchive } from "./js/zip.js";
 
 const actions = {
@@ -70,15 +71,7 @@ function applyDefaultNames() {
 }
 
 function getReadyEntries() {
-  const config = getNamingConfig();
-  return getRunnableEntries().map(entry => {
-    const filename = getOutputNameForBatch(entry.batch, entry.index, config);
-    return {
-      ...entry,
-      filename,
-      title: titleFromFileName(filename),
-    };
-  });
+  return buildMergeEntries(getRunnableEntries(), getNamingConfig());
 }
 
 function addSelectedFiles(fileListLike) {
